@@ -1,0 +1,33 @@
+#tblClick code will read the CSV files for click data, provide some data formatting and then place the data into a postgreSQL
+#database table. This code processes one csv at a time. For each new CSV, the file name and course name need to be updated to the
+#appropriate value. No error checking is performed and it is assumed that the program is run from the same folder as the csv.
+#-------------------------------------------
+
+import csv
+import psycopg2
+import sys
+
+#connecting to the AWS DB. conn_string contains all authentication, and psycopg2 is the postgreSQL python adaptor
+#conn_string = "host='mook1.cvwfrhd2r1eh.us-east-1.rds.amazonaws.com' dbname = 'MOOC' user='georgetown' password='*****' "
+conn_string = "host='localhost' dbname='MOOC' user='postgres' password='*****'"
+conn = psycopg2.connect(conn_string)
+curs = conn.cursor()
+print "Connected!\n"
+
+#The below line is only necessary to create the initial table. Commented out for any additional data appended to table
+#curs.execute("CREATE TABLE tbl_clicks (clickID SERIAL, course TEXT, student TEXT, event_type TEXT, event_time TIMESTAMP, youtube_id TEXT, time_marker NUMERIC, extra TEXT);")
+
+#-----------------
+#Using pythons csv reader to read and open the csv file stored in the same folder at the program. **UPDATE file name for new files**
+reader = csv.reader(open('genomics2_video_events.csv', 'r'), delimiter=',')
+varCourse="genomics2" #hard coded course name to populate column in DB. May not be necessary because it can be derrived from video
+next(reader, None)  #skip the header row in the CSV
+for row in reader: #going through each row of the CSV and creating putting the field into a clean format and writing it to the DB
+    M = unicode(row[4], "utf8")
+    if M == "":  #replaces blank entries with a zero to allow for a numeric datatype
+        M = 0
+    varMarker=float(M)
+    to_db = [varCourse, unicode(row[0], "utf8"), unicode(row[1], "utf8"), unicode(row[2], "utf8"), unicode(row[3], "utf8"), varMarker, unicode(row[5], "utf8")]
+    curs.execute("INSERT INTO tbl_clicks (course, student, event_type, event_time, youtube_id, time_marker, extra) VALUES (%s, %s, %s, %s, %s, %s, %s);", to_db)
+    conn.commit()
+print "Upload Complete!" 
