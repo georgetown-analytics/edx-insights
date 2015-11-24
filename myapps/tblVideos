@@ -1,0 +1,21 @@
+#tblVideos code will read the CSV files for video data, provide some data formatting and then place the data into a postgreSQL 
+#database table. This code processes one csv at a time. For each new CSV, the file name and course name need to be updated to the 
+#appropriate value. No error checking is performed and it is assumed that the program is run from the same folder as the csv. 
+#----------------------------------------- 
+
+import csv
+import psycopg2
+import sys
+
+conn_string = "host='localhost' dbname='MOOC' user='postgres' password='******'" 
+conn = psycopg2.connect(conn_string)
+curs = conn.cursor()
+print "Connected!\n"
+
+curs.execute("CREATE TABLE tbl_videos (youtubeID TEXT, video_order INTEGER, course TEXT, module TEXT, week INTEGER, video_title TEXT, video_length TEXT, video_seconds INTEGER, audience TEXT);")
+reader = csv.reader(open('videos.csv', 'r'), delimiter=',')
+next(reader, None)  #skip the header
+for row in reader:
+    to_db = [unicode(row[0], "utf8"), unicode(row[1], "utf8"), unicode(row[2], "utf8"), unicode(row[3], "utf8"), unicode(row[4], "utf8"),unicode(row[5], "utf8"), unicode(row[6], "utf8"), unicode(row[7], "utf8"), unicode(row[8], "utf8")]
+    curs.execute("INSERT INTO tbl_videos (youtubeID, video_order, course, module, week, video_title, video_length, video_seconds, audience) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);", to_db)
+    conn.commit()
