@@ -1,0 +1,17 @@
+{
+    "target_names": {
+	"0": "NotComplete",
+    	"1": "Completed"
+	},
+
+    "feature_names":[  
+    	"seek_ff_rate",
+    	"seek_rw_rate",
+    	"spd_ch_rate",
+    	"pause_rate",
+    	"click_rate",
+    	"is_complete"
+	]
+}
+
+
